@@ -1,0 +1,319 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  max-width: 1360px;
+  padding: 10px;
+}
+
+/* The game stays centered in the page; the rules sit in the right margin
+   (absolutely positioned) so they don't shove the board off-centre. Below a
+   comfortable width they drop under the game instead (see media query). */
+.app-layout {
+  position: relative;
+  --game-w: 700px;
+  --rules-w: 280px;
+  --col-gap: 24px;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: var(--game-w);
+  margin: 0 auto;
+}
+
+/* Slots UI */
+.slots-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.slot-machine {
+  border: 1px solid #3a3f4b;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #2b2f3a 0%, #1c1f27 100%);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  user-select: none;
+}
+
+/* Tiny red spin / re-spin button below each wheel. */
+.spin-btn {
+  padding: 4px 16px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(180deg, #e5484d 0%, #c1272d 100%);
+  border: 1px solid #9e1c21;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: filter 0.1s ease, transform 0.05s ease;
+}
+
+.spin-btn:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.spin-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.spin-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* The dark window that houses the reels. border-box keeps its 6px padding
+   inside the 100% width so it doesn't overflow into the slot body's padding —
+   that overflow was eating the side buffer and leaving the grey frame taller
+   than it was wide. */
+.reels-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px;
+  background: #0e1014;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* A single reel viewport (one symbol window). Flat cream face — no fake drum
+   curvature shading, which left a glowing band in the middle and read as
+   over-styled. */
+.reel {
+  position: relative;
+  height: 80px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #f7f2e6;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.reel-strip {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.reel-strip.spinning {
+  filter: blur(0.7px);
+}
+
+.reel-cell {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  line-height: 1;
+  color: #1a1a1a;
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols2", "Apple Symbols", system-ui, serif;
+}
+
+.reel-cell.idle {
+  color: #b3ada0;
+  font-weight: 700;
+}
+
+/* A reel that was part of a winning pair/triple — gold face and border, no
+   glow: still clearly marks the win without the halo. */
+.reel.reel-win {
+  background: #f8ecc2;
+  box-shadow: inset 0 0 0 2px #e0a200;
+}
+
+/* Controls */
+.controls-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-text {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.status-turn {
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.status-stat {
+  color: #444;
+}
+
+/* "What can I move" readout: wildcard glyphs • unlocked glyphs, then one blue
+   dot per remaining move (the action pool is shared, so the dots aren't tied to
+   any one piece). The blue matches the movable-square highlight on the board. */
+.movable-readout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.glyph-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.move-glyph {
+  font-size: 20px;
+  line-height: 1;
+  color: #1a1a1a;
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols2", "Apple Symbols", system-ui, serif;
+}
+
+.group-divider {
+  color: #b8b8b8;
+  font-size: 14px;
+}
+
+.move-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 2px;
+}
+
+.move-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4a72ad;
+}
+
+.btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+/* Chessground container rules */
+.board-wrapper {
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.cg-board-container {
+  user-select: none;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Movable-piece highlight: a filled blue square (drawn on chessground's
+   customSvg layer) sitting behind the piece. The layer defaults to z-index 9
+   (above pieces); drop it to 1 so it tints the tile instead of covering the
+   piece — still above the board, still below the pieces (z-index 2). Chessground
+   adds .cg-wrap to our container element itself, so matching both classes on it
+   gives a 3-class selector that outranks chessground's own equally-named-but-
+   2-class `.cg-wrap .cg-custom-svgs` rule (which is loaded after ours). */
+.cg-board-container.cg-wrap .cg-custom-svgs {
+  z-index: 1;
+}
+
+/* Plain-language rules sidebar, pinned to the right of the centered game. */
+.rules-panel {
+  position: absolute;
+  top: 0;
+  left: calc(50% + var(--game-w) / 2 + var(--col-gap));
+  width: var(--rules-w);
+  box-sizing: border-box;
+  background: #f7f8fa;
+  border: 1px solid #e4e7ec;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+/* Narrow screens: drop the rules under the game, both centered. */
+@media (max-width: 1340px) {
+  .rules-panel {
+    position: static;
+    left: auto;
+    width: 100%;
+    max-width: var(--game-w);
+    margin: 20px auto 0;
+  }
+}
+
+.rules-title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: #1a1a1a;
+}
+
+.rules-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #3a3f4b;
+}
+
+.rules-list li {
+  padding-left: 2px;
+}
