@@ -26,7 +26,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      # `npm install` (not `npm ci`): the committed lockfile is generated on
+      # Windows and can miss Linux-only optional deps (e.g. @emnapi/*), which
+      # makes the stricter `npm ci` fail on the Linux runner.
+      - run: npm install
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
